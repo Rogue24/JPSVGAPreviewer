@@ -52,7 +52,7 @@ class FramePreview extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'frame_${viewModel.currentFrameIndex}.png',
+                                      viewModel.currentFrame!.uri.pathSegments.last,
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 14,

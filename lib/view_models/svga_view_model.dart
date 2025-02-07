@@ -114,7 +114,7 @@ class SVGAViewModel extends ChangeNotifier {
             final byteData = await frame.image.toByteData(format: ImageByteFormat.png);
             
             if (byteData != null) {
-              final frameFile = File('${framesDir.path}/frame_$index.png');
+              final frameFile = File('${framesDir.path}/${entry.key}');
               await frameFile.writeAsBytes(byteData.buffer.asUint8List());
               print('成功写入帧 $index 到文件: ${frameFile.path}');
               
