@@ -21,6 +21,8 @@ void main(List<String> args) async {
     exit(0);
   }
 
+  // haha
+
   // 初始化窗口管理器
   await windowManager.ensureInitialized();
 
