@@ -13,8 +13,7 @@ class AppDelegate: FlutterAppDelegate {
   // 处理文件打开
   override func application(_ sender: NSApplication, open urls: [URL]) {
     guard let url = urls.first else { return }
-    let args = [url.path]
-    
+      
     // 获取Flutter引擎
     guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else { return }
     

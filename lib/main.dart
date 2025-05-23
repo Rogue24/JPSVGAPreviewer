@@ -26,7 +26,8 @@ void main(List<String> args) async {
 
   // 设置窗口属性
   WindowOptions windowOptions = const WindowOptions(
-    size: Size(1280, 800),
+    size: Size(760, 600),
+    minimumSize: Size(380, 300),
     center: true,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
@@ -76,6 +77,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false, // 是否显示右上角的debug图标
       title: 'SVGA预览器',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -130,24 +132,17 @@ class MyHomePage extends StatelessWidget {
                 // 右侧预览区域
                 Expanded(
                   child: Container(
-                    color: Colors.black,
+                    color: Colors.transparent,
                     child: Column(
                       children: [
                         // 文件信息栏
-                        Consumer<SVGAViewModel>(
-                          builder: (context, viewModel, child) {
-                            if (viewModel.currentFileName == null) return const SizedBox();
-                            return Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Colors.grey.shade800,
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              child: Row(
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          color: Colors.black45,
+                          child: Consumer<SVGAViewModel>(
+                            builder: (context, viewModel, child) {
+                              if (viewModel.currentFileName == null) return const SizedBox();
+                              return Row(
                                 children: [
                                   const Icon(Icons.movie_outlined),
                                   const SizedBox(width: 8),
@@ -164,7 +159,7 @@ class MyHomePage extends StatelessWidget {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          '帧率: ${viewModel.fps.toStringAsFixed(1)} FPS  •  时长: ${viewModel.duration.toStringAsFixed(2)}秒  •  内存: ${viewModel.memoryUsage.toStringAsFixed(1)}MB',
+                                          '帧率: ${viewModel.fps.toStringAsFixed(1)} FPS  •  时长: ${viewModel.duration.toStringAsFixed(2)}秒  •  内存: ${viewModel.memoryUsage.toStringAsFixed(1)}MB •  分辨率: ${viewModel.frameWidth}x${viewModel.frameHeight}',
                                           style: const TextStyle(
                                             color: Colors.grey,
                                             fontSize: 12,
@@ -173,40 +168,46 @@ class MyHomePage extends StatelessWidget {
                                       ],
                                     ),
                                   ),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    '总帧数: ${viewModel.frames.length}',
+                                    '总帧数: ${viewModel.totalFrames}',
                                     style: const TextStyle(color: Colors.grey),
                                   ),
                                 ],
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
-                        // 上半部分：SVGA动画预览
+                        // 动画播放区域
                         Expanded(
                           child: Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.grey.shade800,
-                                  width: 1,
-                                ),
-                              ),
-                            ),
+                            margin: const EdgeInsets.all(16),
+                            alignment: Alignment.center,
                             child: Consumer<SVGAViewModel>(
                               builder: (context, viewModel, child) {
-                                return Center(
-                                  child: viewModel.svgaFile == null
-                                      ? const Text('无预览内容')
-                                      : SVGAPreview(file: viewModel.svgaFile!),
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    color: viewModel.previewBackgroundColor,
+                                    border: viewModel.showBorder ? Border.all(
+                                      color: Colors.grey.shade800,
+                                      width: 1,
+                                    ) : null,
+                                    borderRadius: viewModel.showBorder ? BorderRadius.circular(4) : null,
+                                  ),
+                                  child: getSvgaWidget(viewModel),
                                 );
                               },
                             ),
                           ),
                         ),
-                        // 下半部分：当前帧预览
-                        const Expanded(
-                          child: FramePreview(),
+                        // 分隔线
+                        Container(
+                          height: 1,
+                          color: Colors.grey.shade800,
+                        ),
+                        // 图片预览区域
+                        Expanded(
+                          child: const FramePreview(),
                         ),
                       ],
                     ),
@@ -254,6 +255,40 @@ class MyHomePage extends StatelessWidget {
         tooltip: '打开SVGA文件',
         child: const Icon(Icons.folder_open),
       ),
+    );
+  }
+
+  Widget getSvgaWidget(SVGAViewModel viewModel) {
+    if (viewModel.svgaFile == null || viewModel.frameWidth == 0 || viewModel.frameHeight == 0) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('无预览'),
+      );
+    }
+
+    // 等比例填充（目前暂无效果）
+    // if (viewModel.scaleAspectFill) {
+    //   return SVGAPreview(file: viewModel.svgaFile!);
+    // }
+
+    // 等比例适应
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 计算缩放比例
+        double scaleX = constraints.maxWidth / viewModel.frameWidth;
+        double scaleY = constraints.maxHeight / viewModel.frameHeight;
+        double scale = scaleX < scaleY ? scaleX : scaleY;
+        
+        // 计算实际显示尺寸
+        double width = viewModel.frameWidth * scale;
+        double height = viewModel.frameHeight * scale;
+        
+        return SizedBox(
+          width: width,
+          height: height,
+          child: SVGAPreview(file: viewModel.svgaFile!),
+        );
+      },
     );
   }
 }

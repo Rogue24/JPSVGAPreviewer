@@ -16,6 +16,12 @@ class SVGAViewModel extends ChangeNotifier {
   double _fps = 0;  
   double _duration = 0;  
   double _memoryUsage = 0;  
+  int _totalFrames = 0;
+  int _frameWidth = 0;
+  int _frameHeight = 0;
+  Color _previewBackgroundColor = Colors.transparent;
+  bool _showBorder = true;  // 添加边框显示状态
+  bool _scaleAspectFill = false;  // 添加等比例填充状态
 
   List<File> get frames => _frames;
   int get currentFrameIndex => _currentFrameIndex;
@@ -26,6 +32,12 @@ class SVGAViewModel extends ChangeNotifier {
   double get fps => _fps;
   double get duration => _duration;
   double get memoryUsage => _memoryUsage;
+  int get totalFrames => _totalFrames;
+  int get frameWidth => _frameWidth;
+  int get frameHeight => _frameHeight;
+  Color get previewBackgroundColor => _previewBackgroundColor;
+  bool get showBorder => _showBorder;
+  bool get scaleAspectFill => _scaleAspectFill;
 
   // 清理所有状态
   Future<void> clearState() async {
@@ -37,6 +49,7 @@ class SVGAViewModel extends ChangeNotifier {
     _fps = 0;
     _duration = 0;
     _memoryUsage = 0;
+    _totalFrames = 0;
     print('内存状态已清理');
     
     try {
@@ -98,9 +111,13 @@ class SVGAViewModel extends ChangeNotifier {
 
       final images = videoItem.images;
       
+      _totalFrames = videoItem.params.frames;
       _fps = videoItem.params.fps.toDouble();
-      _duration = images.length / _fps;
+      _duration = _totalFrames / _fps;
       print('FPS: $_fps, 持续时间: $_duration秒');
+
+      _frameWidth = videoItem.params.viewBoxWidth.toInt();
+      _frameHeight = videoItem.params.viewBoxHeight.toInt();
 
       final List<File> tempFrames = [];
 
@@ -137,27 +154,40 @@ class SVGAViewModel extends ChangeNotifier {
 
       if (tempFrames.isEmpty) {
         print('未能从SVGA文件中提取到任何图片');
-        await clearState();
       } else {
         print('成功提取了 ${tempFrames.length} 帧图片');
-        
-        imageCache.clear();
-        imageCache.clearLiveImages();
-        print('再次清空图片缓存');
-        
-        _frames = List.from(tempFrames);
-        _currentFrameIndex = 0;
-        print('帧数组已更新，长度: ${_frames.length}');
-        
-        Future.microtask(() {
-          notifyListeners();
-          print('UI更新完成');
-        });
       }
+      imageCache.clear();
+      imageCache.clearLiveImages();
+      print('再次清空图片缓存');
+      
+      _frames = List.from(tempFrames);
+      _currentFrameIndex = 0;
+      print('帧数组已更新，长度: ${_frames.length}');
+      
+      Future.microtask(() {
+        notifyListeners();
+        print('UI更新完成');
+      });
     } catch (e) {
       print('处理SVGA文件时出错: $e');
       print(e.toString());
       await clearState();
     }
+  }
+
+  void setPreviewBackgroundColor(Color color) {  // 更新方法名
+    _previewBackgroundColor = color;
+    notifyListeners();
+  }
+
+  void setShowBorder(bool value) {
+    _showBorder = value;
+    notifyListeners();
+  }
+
+  void setScaleAspectFill(bool value) {
+    _scaleAspectFill = value;
+    notifyListeners();
   }
 } 
