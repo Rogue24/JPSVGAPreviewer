@@ -31,6 +31,7 @@ class SVGAViewModel extends ChangeNotifier {
   Color _previewBackgroundColor = Colors.transparent;
   bool _showBorder = true;  // 添加边框显示状态
   DisplayMode _mode = DisplayMode.showAll;
+  int _totalSizeInBytes = 0; // 添加文件总大小
 
   List<File> get frames => _frames;
   int get currentFrameIndex => _currentFrameIndex;
@@ -47,6 +48,18 @@ class SVGAViewModel extends ChangeNotifier {
   Color get previewBackgroundColor => _previewBackgroundColor;
   bool get showBorder => _showBorder;
   DisplayMode get mode => _mode;
+  int get totalSizeInBytes => _totalSizeInBytes;
+
+  String get formattedTotalSize {
+    const suffixes = ['B', 'KB', 'MB', 'GB'];
+    double size = _totalSizeInBytes.toDouble();
+    int i = 0;
+    while (size >= 1000 && i < suffixes.length - 1) {
+      size /= 1000; // 使用 Finder 显示规则的格式化方法，1024是传统的二进制单位
+      i++;
+    }
+    return '${size.toStringAsFixed(0)} ${suffixes[i]}';
+  }
 
   // 从缓存加载排版模式
   Future<void> loadModeFromCache() async {
@@ -122,6 +135,11 @@ class SVGAViewModel extends ChangeNotifier {
 
       _svgaFile = File(filePath);
       print('设置新的SVGA文件路径: ${_svgaFile?.path}');
+
+      if (_svgaFile != null && await _svgaFile!.exists()) {
+        _totalSizeInBytes = await _svgaFile!.length();
+        print('SVGA 文件总大小: ${formattedTotalSize}');
+      }
       
       final parser = SVGAParser();
       final videoItem = await parser.decodeFromBuffer(

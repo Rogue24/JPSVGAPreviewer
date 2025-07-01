@@ -46,7 +46,7 @@ class SVGAInfoBar extends StatelessWidget {
   }
 
   String _infoText(SVGAViewModel viewModel) {
-    return '帧率: ${viewModel.fps.toStringAsFixed(1)} FPS  •  时长: ${viewModel.duration.toStringAsFixed(2)}秒  •  内存: ${viewModel.memoryUsage.toStringAsFixed(1)}MB •  分辨率: ${viewModel.frameWidth}x${viewModel.frameHeight}';
+    return '帧率: ${viewModel.fps.toStringAsFixed(1)} FPS  •  时长: ${viewModel.duration.toStringAsFixed(2)}秒  •  内存: ${viewModel.memoryUsage.toStringAsFixed(1)}MB \n分辨率: ${viewModel.frameWidth}x${viewModel.frameHeight} • 文件大小: ${viewModel.formattedTotalSize}';
   }
 
   String _totalFramesText(SVGAViewModel viewModel) {
