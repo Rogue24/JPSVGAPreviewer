@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:svgaplayer_flutter/svgaplayer_flutter.dart';
 import 'dart:io';
 import 'dart:typed_data';
@@ -6,8 +7,16 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'dart:ui';
 
+enum DisplayMode {
+  showAll,
+  showTop,
+  showBottom,
+}
+
 // SVGA视图模型，用于管理状态
 class SVGAViewModel extends ChangeNotifier {
+  static const _mode_key = 'user_mode';
+
   List<File> _frames = [];
   int _currentFrameIndex = 0;
   bool _isDragging = false;
@@ -21,8 +30,7 @@ class SVGAViewModel extends ChangeNotifier {
   int _frameHeight = 0;
   Color _previewBackgroundColor = Colors.transparent;
   bool _showBorder = true;  // 添加边框显示状态
-  bool _scaleAspectFill = false;  // 添加等比例填充状态
-  int _totalSizeInBytes = 0;
+  DisplayMode _mode = DisplayMode.showAll;
 
   List<File> get frames => _frames;
   int get currentFrameIndex => _currentFrameIndex;
@@ -38,19 +46,18 @@ class SVGAViewModel extends ChangeNotifier {
   int get frameHeight => _frameHeight;
   Color get previewBackgroundColor => _previewBackgroundColor;
   bool get showBorder => _showBorder;
-  bool get scaleAspectFill => _scaleAspectFill;
-  int get totalSizeInBytes => _totalSizeInBytes;
+  DisplayMode get mode => _mode;
 
-  String get formattedTotalSize {
-  const suffixes = ['B', 'KB', 'MB', 'GB'];
-  double size = _totalSizeInBytes.toDouble();
-  int i = 0;
-  while (size >= 1000 && i < suffixes.length - 1) {
-    size /= 1000; // 使用 Finder 显示规则的格式化方法，1024是传统的二进制单位
-    i++;
+  // 从缓存加载排版模式
+  Future<void> loadModeFromCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final name = prefs.getString(_mode_key);
+    if (name == null) return;
+    _mode = DisplayMode.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => DisplayMode.showAll,
+    );
   }
-  return '${size.toStringAsFixed(0)} ${suffixes[i]}';
-}
 
   // 清理所有状态
   Future<void> clearState() async {
@@ -115,11 +122,6 @@ class SVGAViewModel extends ChangeNotifier {
 
       _svgaFile = File(filePath);
       print('设置新的SVGA文件路径: ${_svgaFile?.path}');
-
-      if (_svgaFile != null && await _svgaFile!.exists()) {
-           _totalSizeInBytes = await _svgaFile!.length();
-          print('SVGA 文件总大小: ${formattedTotalSize}');
-      }
       
       final parser = SVGAParser();
       final videoItem = await parser.decodeFromBuffer(
@@ -204,10 +206,10 @@ class SVGAViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setScaleAspectFill(bool value) {
-    _scaleAspectFill = value;
+  Future<void> setMode(DisplayMode mode) async {
+    _mode = mode;
     notifyListeners();
-
-    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_mode_key, mode.name);
   }
 } 

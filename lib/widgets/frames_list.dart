@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:svgaplayer_flutter/player.dart';
 import '../view_models/svga_view_model.dart';
 import 'package:flutter/cupertino.dart';
 
 class FramesList extends StatelessWidget {
-  const FramesList({super.key});
+  final SVGAAnimationController controller;
+  
+  const FramesList({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +71,35 @@ class FramesList extends StatelessWidget {
                       ),
               ),
             ),
+
+            // 进度控制栏
+            // Container(
+            //   padding: const EdgeInsets.all(8),
+            //   decoration: BoxDecoration(
+            //     color: Theme.of(context).scaffoldBackgroundColor,  // 使用 Scaffold 的默认背景色
+            //     border: Border(
+            //       top: BorderSide(
+            //         color: Colors.grey.shade800,
+            //         width: 1,
+            //       ),
+            //     ),
+            //   ),
+            //   child: Column(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Text('当前帧: ${controller.currentFrame}', style: const TextStyle(fontSize: 12)),
+            //       const SizedBox(height: 8),
+            //       Container(
+            //         color: Colors.amber,
+            //         child: const Padding(
+            //           padding: EdgeInsets.all(2), 
+            //           child: Text('临时占位的，之后放一个可以拖拽的进度条', style: TextStyle(fontSize: 12, color: Colors.black87)),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+
             // 开关选项栏
             Container(
               padding: const EdgeInsets.all(8),
@@ -95,6 +127,7 @@ class FramesList extends StatelessWidget {
                 ],
               ),
             ),
+
             // 背景选项栏
             Container(
               padding: const EdgeInsets.all(8),
@@ -145,6 +178,50 @@ class FramesList extends StatelessWidget {
                 ],
               ),
             ),
+
+            // 排版选项栏
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,  // 使用 Scaffold 的默认背景色
+                border: Border(
+                  top: BorderSide(
+                    color: Colors.grey.shade800,
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('排版模式:', style: TextStyle(fontSize: 12)),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(width: 10),
+                      _ModeButton(
+                        mode: DisplayMode.showAll, 
+                        isSelected: viewModel.mode == DisplayMode.showAll, 
+                        onTap: () => viewModel.setMode(DisplayMode.showAll)
+                      ),
+                      const SizedBox(width: 12),
+                      _ModeButton(
+                        mode: DisplayMode.showTop, 
+                        isSelected: viewModel.mode == DisplayMode.showTop, 
+                        onTap: () => viewModel.setMode(DisplayMode.showTop),
+                      ),
+                      const SizedBox(width: 12),
+                      _ModeButton(
+                        mode: DisplayMode.showBottom, 
+                        isSelected: viewModel.mode == DisplayMode.showBottom, 
+                        onTap: () => viewModel.setMode(DisplayMode.showBottom),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ],
         );
       },
@@ -161,6 +238,58 @@ class FramesList extends StatelessWidget {
         child: Text('该SVGA文件并未包含图片\n🎨🚫', textAlign: TextAlign.center,),
       );
     }
+  }
+}
+
+class _ModeButton extends StatelessWidget {
+  final DisplayMode mode;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ModeButton({
+    required this.mode,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Color color = isSelected ? Colors.blue.shade300 : Colors.grey.shade800;
+
+    IconData? icon;
+    switch (mode) {
+      case DisplayMode.showAll:
+        icon = Icons.vertical_align_center;
+        break;
+      case DisplayMode.showTop:
+        icon = Icons.vertical_align_bottom;
+        break;
+      case DisplayMode.showBottom:
+        icon = Icons.vertical_align_top;
+        break;
+    }
+    
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 26,
+        height: 26,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: color,  
+            width: 1.5,           
+          ),
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: Center(
+          child: Icon(
+            icon,         
+            color: color,
+            size: 15,
+          ),
+        ),
+      ),
+    );
   }
 }
 
