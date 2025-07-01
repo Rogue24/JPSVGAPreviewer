@@ -207,5 +207,7 @@ class SVGAViewModel extends ChangeNotifier {
   void setScaleAspectFill(bool value) {
     _scaleAspectFill = value;
     notifyListeners();
+
+    
   }
 } 
