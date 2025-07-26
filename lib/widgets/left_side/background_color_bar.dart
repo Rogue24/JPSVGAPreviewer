@@ -30,27 +30,27 @@ class BackgroundColorBar extends StatelessWidget {
               _ColorButton(
                 color: Colors.transparent,
                 isSelected: viewModel.previewBackgroundColor == Colors.transparent,
-                onTap: () => viewModel.setPreviewBackgroundColor(Colors.transparent),
+                onTap: () async => await viewModel.setPreviewBackgroundColor(Colors.transparent),
               ),
               _ColorButton(
                 color: Colors.black,
                 isSelected: viewModel.previewBackgroundColor == Colors.black,
-                onTap: () => viewModel.setPreviewBackgroundColor(Colors.black),
+                onTap: () async => await viewModel.setPreviewBackgroundColor(Colors.black),
               ),
               _ColorButton(
                 color: Colors.white,
                 isSelected: viewModel.previewBackgroundColor == Colors.white,
-                onTap: () => viewModel.setPreviewBackgroundColor(Colors.white),
+                onTap: () async => await viewModel.setPreviewBackgroundColor(Colors.white),
               ),
               _ColorButton(
                 color: Colors.grey,
                 isSelected: viewModel.previewBackgroundColor == Colors.grey,
-                onTap: () => viewModel.setPreviewBackgroundColor(Colors.grey),
+                onTap: () async => await viewModel.setPreviewBackgroundColor(Colors.grey),
               ),
               _ColorButton(
                 color: Colors.deepPurpleAccent.shade100,
                 isSelected: viewModel.previewBackgroundColor == Colors.deepPurpleAccent.shade100,
-                onTap: () => viewModel.setPreviewBackgroundColor(Colors.deepPurpleAccent.shade100),
+                onTap: () async => await viewModel.setPreviewBackgroundColor(Colors.deepPurpleAccent.shade100),
               ),
             ],
           ),

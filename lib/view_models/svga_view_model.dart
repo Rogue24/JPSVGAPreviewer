@@ -43,6 +43,8 @@ class FrameInfo {
 // SVGA视图模型，用于管理状态
 class SVGAViewModel extends ChangeNotifier {
   static const _mode_key = 'user_mode';
+  static const _show_border_key = 'show_border';
+  static const _background_color_key = 'background_color';
 
   List<File> _frames = [];
   List<FrameInfo> _frameInfos = []; // 帧信息列表
@@ -93,15 +95,36 @@ class SVGAViewModel extends ChangeNotifier {
   DisplayMode get mode => _mode;
   bool get allowDrawingOverflow => _allowDrawingOverflow;
 
-  // 从缓存加载排版模式
-  Future<void> loadModeFromCache() async {
+  // 从缓存加载用户偏好设置
+  Future<void> loadUserPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    final name = prefs.getString(_mode_key);
-    if (name == null) return;
-    _mode = DisplayMode.values.firstWhere(
-      (e) => e.name == name,
-      orElse: () => DisplayMode.showAll,
-    );
+    
+    // 加载显示模式
+    final modeString = prefs.getString(_mode_key);
+    if (modeString != null) {
+      _mode = DisplayMode.values.firstWhere(
+        (e) => e.name == modeString,
+        orElse: () => DisplayMode.showAll,
+      );
+    }
+    
+    // 加载边框显示设置，默认为true
+    _showBorder = prefs.getBool(_show_border_key) ?? true;
+    
+    // 加载背景颜色设置，默认为透明
+    final colorValue = prefs.getInt(_background_color_key);
+    if (colorValue != null) {
+      _previewBackgroundColor = Color(colorValue);
+    } else {
+      _previewBackgroundColor = Colors.transparent;
+    }
+    
+    notifyListeners();
+  }
+
+  // 保持向后兼容性的方法
+  Future<void> loadModeFromCache() async {
+    await loadUserPreferences();
   }
 
   // 清理所有状态
@@ -275,14 +298,22 @@ class SVGAViewModel extends ChangeNotifier {
     }
   }
 
-  void setPreviewBackgroundColor(Color color) {  // 更新方法名
+  Future<void> setPreviewBackgroundColor(Color color) async {  // 更新方法名
     _previewBackgroundColor = color;
     notifyListeners();
+    
+    // 保存到本地存储
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_background_color_key, color.value);
   }
 
-  void setShowBorder(bool value) {
+  Future<void> setShowBorder(bool value) async {
     _showBorder = value;
     notifyListeners();
+    
+    // 保存到本地存储
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_show_border_key, value);
   }
 
   Future<void> setMode(DisplayMode mode) async {
