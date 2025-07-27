@@ -42,8 +42,8 @@ void main(List<String> args) async {
   // 创建视图模型
   final viewModel = SVGAViewModel();
 
-  // 从缓存加载排版模式
-  await viewModel.loadModeFromCache();
+  // 从缓存加载用户偏好设置（包括排版模式、边框显示、背景颜色）
+  await viewModel.loadUserPreferences();
 
   // 设置方法通道处理文件打开
   const channel = MethodChannel('svga_viewer');

@@ -94,6 +94,21 @@ class SVGAControlBar extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+
+            // 播放速度控制
+            Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8, top: 4),
+              child: Row(
+                children: [
+                  const Text('播放速度:', style: TextStyle(fontSize: 12)),
+                  const SizedBox(width: 8),
+                  Text(_SpeedSelector.formatSpeedDisplay(viewModel.playbackSpeed), 
+                       style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  const Spacer(),
+                  _SpeedSelector(viewModel: viewModel, controller: controller),
+                ],
+              ),
             )
           ],
         ),
@@ -158,6 +173,83 @@ class __PlayButtonState extends State<_PlayButton> {
             color: Colors.white,
           );
         }
+      ),
+    );
+  }
+}
+
+/// 播放速度选择器
+class _SpeedSelector extends StatelessWidget {
+  final SVGAViewModel viewModel;
+  final SVGAAnimationController controller;
+
+  const _SpeedSelector({required this.viewModel, required this.controller});
+
+  /// 格式化播放速度显示文本，确保与菜单选项一致
+  static String formatSpeedDisplay(double speed) {
+    if (speed == 0.25) return '0.25x';
+    if (speed == 0.5) return '0.5x';
+    if (speed == 0.75) return '0.75x';
+    if (speed == 1.0) return '1.0x';
+    if (speed == 1.25) return '1.25x';
+    if (speed == 1.5) return '1.5x';
+    if (speed == 2.0) return '2.0x';
+    
+    // 对于其他值，使用合理的格式化
+    if (speed == speed.toInt()) {
+      return '${speed.toInt()}.0x';
+    } else {
+      return '${speed}x';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<double>(
+      onSelected: (speed) async {
+        await viewModel.setPlaybackSpeed(speed);
+        // 注意：播放速度的应用现在通过setPlaybackSpeed方法内部的防抖机制自动处理
+      },
+      itemBuilder: (context) => [
+        _buildSpeedMenuItem(0.25, '0.25x'),
+        _buildSpeedMenuItem(0.5, '0.5x'),
+        _buildSpeedMenuItem(0.75, '0.75x'),
+        _buildSpeedMenuItem(1.0, '1.0x (正常)'),
+        _buildSpeedMenuItem(1.25, '1.25x'),
+        _buildSpeedMenuItem(1.5, '1.5x'),
+        _buildSpeedMenuItem(2.0, '2.0x'),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.deepPurpleAccent.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: Colors.deepPurpleAccent.shade200, width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.speed, size: 14, color: Colors.deepPurpleAccent.shade200),
+            const SizedBox(width: 4),
+            Icon(Icons.arrow_drop_down, size: 16, color: Colors.deepPurpleAccent.shade200),
+          ],
+        ),
+      ),
+    );
+  }
+
+  PopupMenuItem<double> _buildSpeedMenuItem(double speed, String label) {
+    return PopupMenuItem<double>(
+      value: speed,
+      child: Row(
+        children: [
+          if (viewModel.playbackSpeed == speed)
+            Icon(Icons.check, size: 16, color: Colors.deepPurpleAccent.shade200)
+          else
+            const SizedBox(width: 16),
+          const SizedBox(width: 8),
+          Text(label),
+        ],
       ),
     );
   }

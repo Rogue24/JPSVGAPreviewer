@@ -45,12 +45,19 @@ class _SVGAPreviewState extends State<SVGAPreview> {
       if (mounted) {
         print("SVGAPreview 开始播放");
         widget.controller.videoItem = videoItem;
+        
+        // 初始化播放速度控制
+        final viewModel = Provider.of<SVGAViewModel>(context, listen: false);
+        viewModel.initializeControllerForSpeed(widget.controller);
+        
         widget.controller.repeat();
       }
     } catch (e) {
       print('SVGAPreview 加载SVGA文件失败: $e');
     }
   }
+
+
   
   @override
   void dispose() {
