@@ -46,7 +46,6 @@ class SVGAViewModel extends ChangeNotifier {
   static const _mode_key = 'user_mode';
   static const _show_border_key = 'show_border';
   static const _background_color_key = 'background_color';
-  // 移除播放速度的存储键，不再持久化存储播放速度
 
   List<File> _frames = [];
   List<FrameInfo> _frameInfos = []; // 帧信息列表
@@ -127,8 +126,6 @@ class SVGAViewModel extends ChangeNotifier {
     } else {
       _previewBackgroundColor = Colors.transparent;
     }
-    
-    // 播放速度默认为1.0倍速，不进行持久化存储
 
     notifyListeners();
   }
