@@ -68,9 +68,7 @@ class SVGAViewModel extends ChangeNotifier {
   double _playbackSpeed = 1.0; // 播放速度，默认1.0倍速
   
   // 播放速度控制相关
-  Duration? _originalControllerDuration; // 保存原始的controller duration
   Timer? _speedChangeDebounceTimer; // 防抖计时器
-  SVGAAnimationController? _currentController; // 当前的controller引用
 
   List<File> get frames => _frames;
   List<FrameInfo> get frameInfos => _frameInfos;
@@ -151,7 +149,11 @@ class SVGAViewModel extends ChangeNotifier {
     _totalFrames = 0;
     
     // 清理播放速度控制相关资源
-    _clearSpeedControlResources();
+    _speedChangeDebounceTimer?.cancel();
+    _speedChangeDebounceTimer = null;
+    
+    // 重置播放速度为默认值
+    _playbackSpeed = 1.0;
     
     print('内存状态已清理');
     
@@ -340,7 +342,7 @@ class SVGAViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setPlaybackSpeed(double speed) async {
+  void setPlaybackSpeed(double speed) {
     if (speed < 0.1 || speed > 10.0) { // 添加参数验证
       print('警告：播放速度设置超出有效范围 (0.1 - 10.0)，当前速度保持不变。');
       return;
@@ -348,84 +350,13 @@ class SVGAViewModel extends ChangeNotifier {
     if (_playbackSpeed == speed) return; // 避免重复设置相同速度
     
     _playbackSpeed = speed;
-    notifyListeners();
-    
-    // 使用防抖机制，避免频繁应用播放速度
-    _speedChangeDebounceTimer?.cancel();
-    _speedChangeDebounceTimer = Timer(const Duration(milliseconds: 100), () {
-      // 应用到当前controller
-      if (_currentController != null) {
-        _applySpeedToCurrentController();
-      }
-      print("播放速度已设置: ${speed}x (不持久化存储)");
-    });
-  }
-
-  /// 初始化controller并保存原始duration（仅在新SVGA加载时调用）
-  void initializeControllerForSpeed(SVGAAnimationController controller) {
-    _currentController = controller;
-    
-    // 保存原始duration（如果还没保存的话）
-    if (controller.duration != null && _originalControllerDuration == null) {
-      _originalControllerDuration = controller.duration!;
-      print("保存原始duration: ${_originalControllerDuration!.inMilliseconds}ms");
-    }
-    
-    // 立即应用当前播放速度
-    _applySpeedToCurrentController();
-  }
-
-  /// 应用播放速度到当前controller（内部方法）
-  void _applySpeedToCurrentController() {
-    if (_currentController == null || _originalControllerDuration == null) {
-      print("Controller或原始duration未初始化，跳过速度应用");
-      return;
-    }
-    
-    try {
-      // 基于原始duration计算新duration
-      final newDuration = Duration(
-        milliseconds: (_originalControllerDuration!.inMilliseconds / _playbackSpeed).round(),
-      );
-      
-      // 保存当前播放状态
-      final wasAnimating = _currentController!.isAnimating;
-      final currentValue = _currentController!.value;
-      
-      // 停止当前动画
-      if (wasAnimating) {
-        _currentController!.stop();
-      }
-      
-      // 设置新的duration
-      _currentController!.duration = newDuration;
-      
-      // 恢复播放位置
-      _currentController!.value = currentValue;
-      
-      // 如果之前在播放，继续播放
-      if (wasAnimating) {
-        _currentController!.repeat();
-      }
-      
-      print("成功应用播放速度: ${_playbackSpeed}x, 新duration: ${newDuration.inMilliseconds}ms");
-    } catch (e) {
-      print("应用播放速度失败: $e");
-    }
-  }
-
-  /// 清理播放速度相关资源
-  void _clearSpeedControlResources() {
-    _speedChangeDebounceTimer?.cancel();
-    _speedChangeDebounceTimer = null;
-    _originalControllerDuration = null;
-    _currentController = null;
-    print("播放速度控制资源已清理");
+    print("播放速度已设置: ${speed}x");
+    notifyListeners(); // 通知UI更新，UI组件负责应用速度到controller
   }
 
   @override
   void dispose() {
-    _clearSpeedControlResources();
+    _speedChangeDebounceTimer?.cancel();
     super.dispose();
   }
 } 

@@ -206,9 +206,9 @@ class _SpeedSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<double>(
-      onSelected: (speed) async {
-        await viewModel.setPlaybackSpeed(speed);
-        // 注意：播放速度的应用现在通过setPlaybackSpeed方法内部的防抖机制自动处理
+      onSelected: (speed) {
+        viewModel.setPlaybackSpeed(speed);
+        // 注意：播放速度的应用现在由SVGAPreview组件监听并自动处理
       },
       itemBuilder: (context) => [
         _buildSpeedMenuItem(0.25, '0.25x'),

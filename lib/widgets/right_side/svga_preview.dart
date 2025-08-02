@@ -16,6 +16,8 @@ class SVGAPreview extends StatefulWidget {
 }
 
 class _SVGAPreviewState extends State<SVGAPreview> {
+  Duration? _originalDuration; // 保存原始duration
+  double _currentAppliedSpeed = 1.0; // 当前已应用的速度
   
   @override
   void initState() {
@@ -46,9 +48,15 @@ class _SVGAPreviewState extends State<SVGAPreview> {
         print("SVGAPreview 开始播放");
         widget.controller.videoItem = videoItem;
         
-        // 初始化播放速度控制
+        // 保存原始duration
+        if (widget.controller.duration != null) {
+          _originalDuration = widget.controller.duration!;
+          print("保存原始duration: ${_originalDuration!.inMilliseconds}ms");
+        }
+        
+        // 应用当前播放速度
         final viewModel = Provider.of<SVGAViewModel>(context, listen: false);
-        viewModel.initializeControllerForSpeed(widget.controller);
+        _applyPlaybackSpeed(viewModel.playbackSpeed);
         
         widget.controller.repeat();
       }
@@ -57,7 +65,49 @@ class _SVGAPreviewState extends State<SVGAPreview> {
     }
   }
 
-
+  /// 应用播放速度到controller
+  void _applyPlaybackSpeed(double speed) {
+    if (_originalDuration == null) {
+      print("原始duration未保存，跳过速度应用");
+      return;
+    }
+    
+    if (_currentAppliedSpeed == speed) {
+      return; // 已经应用了相同的速度，跳过
+    }
+    
+    try {
+      // 基于原始duration计算新duration
+      final newDuration = Duration(
+        milliseconds: (_originalDuration!.inMilliseconds / speed).round(),
+      );
+      
+      // 保存当前播放状态
+      final wasAnimating = widget.controller.isAnimating;
+      final currentValue = widget.controller.value;
+      
+      // 停止当前动画
+      if (wasAnimating) {
+        widget.controller.stop();
+      }
+      
+      // 设置新的duration
+      widget.controller.duration = newDuration;
+      
+      // 恢复播放位置
+      widget.controller.value = currentValue;
+      
+      // 如果之前在播放，继续播放
+      if (wasAnimating) {
+        widget.controller.repeat();
+      }
+      
+      _currentAppliedSpeed = speed;
+      print("SVGAPreview 成功应用播放速度: ${speed}x, 新duration: ${newDuration.inMilliseconds}ms");
+    } catch (e) {
+      print("SVGAPreview 应用播放速度失败: $e");
+    }
+  }
   
   @override
   void dispose() {
@@ -71,6 +121,13 @@ class _SVGAPreviewState extends State<SVGAPreview> {
   Widget build(BuildContext context) {
     return Consumer<SVGAViewModel>(
       builder: (context, viewModel, child) {
+        // 监听播放速度变化并自动应用
+        if (_originalDuration != null && viewModel.playbackSpeed != _currentAppliedSpeed) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _applyPlaybackSpeed(viewModel.playbackSpeed);
+          });
+        }
+        
         return Container(
           width: widget.preferredSize.width,
           height: widget.preferredSize.height,
