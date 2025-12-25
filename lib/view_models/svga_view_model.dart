@@ -411,8 +411,10 @@ class SVGAViewModel extends ChangeNotifier {
   bool _isLottieZip(Archive archive) {
     for (final file in archive) {
       final fileName = file.name.toLowerCase();
+      // 支持根目录和嵌套目录中的 data.json
       if (fileName == 'data.json' || 
-          (fileName.endsWith('.json') && fileName.contains('data'))) {
+          fileName.endsWith('/data.json') ||
+          (fileName.endsWith('.json') && fileName.contains('data') && !fileName.contains('manifest'))) {
         return true;
       }
     }
@@ -440,17 +442,33 @@ class SVGAViewModel extends ChangeNotifier {
     final imagesDir = Directory('$tempDirPath/images');
     bool hasImages = false;
     
+    // 查找所有包含 images/ 的路径（支持嵌套目录）
+    String? imagesBasePath; // 存储找到的 images 文件夹的基础路径
+    
     for (final file in archive) {
       final fileName = file.name;
-      // 检查是否是 images/ 文件夹中的文件
-      if (fileName.toLowerCase().startsWith('images/') && !file.isFile) {
-        continue; // 跳过目录条目
+      final fileNameLower = fileName.toLowerCase();
+      
+      // 跳过目录条目和 macOS 系统文件
+      if (!file.isFile || fileNameLower.contains('__macosx') || fileNameLower.contains('/._')) {
+        continue;
       }
       
-      if (fileName.toLowerCase().startsWith('images/')) {
+      // 检查是否是 images/ 文件夹中的文件（支持嵌套目录，如 "folder/images/file.png"）
+      if (fileNameLower.contains('/images/')) {
+        // 提取 images/ 之后的部分作为相对路径
+        final imagesIndex = fileNameLower.indexOf('/images/');
+        final relativePath = fileName.substring(imagesIndex + 8); // +8 是 "/images/" 的长度
+        
+        // 如果这是第一个找到的图片，记录基础路径
+        if (!hasImages) {
+          imagesBasePath = fileName.substring(0, imagesIndex + 8); // 包含 "/images/"
+          print('找到 images 文件夹路径: $imagesBasePath');
+        }
+        
         hasImages = true;
-        // 创建目录结构
-        final targetPath = path.join(tempDirPath, fileName);
+        // 创建统一的 images/ 目录结构（去掉嵌套的父目录）
+        final targetPath = path.join(tempDirPath, 'images', relativePath);
         final targetFile = File(targetPath);
         final targetDir = targetFile.parent;
         
@@ -459,6 +477,22 @@ class SVGAViewModel extends ChangeNotifier {
         }
         
         // 写入文件
+        if (file.content is List<int>) {
+          await targetFile.writeAsBytes(file.content as List<int>);
+          print('提取图片资源: $fileName -> $targetPath');
+        }
+      } else if (fileNameLower.startsWith('images/')) {
+        // 处理根目录下的 images/ 文件夹
+        hasImages = true;
+        final relativePath = fileName.substring(7); // 去掉 "images/" 前缀
+        final targetPath = path.join(tempDirPath, 'images', relativePath);
+        final targetFile = File(targetPath);
+        final targetDir = targetFile.parent;
+        
+        if (!await targetDir.exists()) {
+          await targetDir.create(recursive: true);
+        }
+        
         if (file.content is List<int>) {
           await targetFile.writeAsBytes(file.content as List<int>);
           print('提取图片资源: $fileName -> $targetPath');
@@ -526,24 +560,35 @@ class SVGAViewModel extends ChangeNotifier {
         }
       }
       
-      // 优先查找 data.json 文件（标准 Lottie ZIP 格式）
+      // 优先查找 data.json 文件（标准 Lottie ZIP 格式，支持嵌套目录）
       String? jsonContent;
       for (final file in archive) {
         final fileName = file.name;
-        if (fileName == 'data.json') {
+        final fileNameLower = fileName.toLowerCase();
+        // 跳过 macOS 系统文件
+        if (fileNameLower.contains('__macosx') || fileNameLower.contains('/._')) {
+          continue;
+        }
+        // 支持根目录和嵌套目录中的 data.json
+        if (fileName == 'data.json' || fileNameLower.endsWith('/data.json')) {
           jsonContent = utf8.decode(file.content as List<int>);
-          print('找到 data.json 文件，大小: ${jsonContent.length} 字符');
+          print('找到 data.json 文件: ${file.name}，大小: ${jsonContent.length} 字符');
           break;
         }
       }
       
-      // 如果找不到 data.json，查找 animations/animation.json（.lottie 新格式）
+      // 如果找不到 data.json，查找 animations/animation.json（.lottie 新格式，支持嵌套目录）
       if (jsonContent == null) {
         print('未找到 data.json，查找 animations/animation.json...');
         for (final file in archive) {
           final fileName = file.name;
-          if (fileName == 'animations/animation.json' || 
-              (fileName.startsWith('animations/') && fileName.endsWith('.json'))) {
+          final fileNameLower = fileName.toLowerCase();
+          if (fileNameLower.contains('__macosx') || fileNameLower.contains('/._')) {
+            continue;
+          }
+          // 支持嵌套目录，如 "folder/animations/animation.json"
+          if (fileNameLower.endsWith('/animations/animation.json') ||
+              (fileNameLower.contains('/animations/') && fileNameLower.endsWith('.json'))) {
             jsonContent = utf8.decode(file.content as List<int>);
             print('找到动画 JSON 文件: ${file.name}，大小: ${jsonContent.length} 字符');
             break;
@@ -551,13 +596,19 @@ class SVGAViewModel extends ChangeNotifier {
         }
       }
       
-      // 如果还是找不到，查找其他 JSON 文件（向后兼容，但排除 manifest.json）
+      // 如果还是找不到，查找其他 JSON 文件（向后兼容，但排除 manifest.json 和 macOS 系统文件）
       if (jsonContent == null) {
         print('未找到标准动画文件，查找其他 JSON 文件（排除 manifest.json）...');
         for (final file in archive) {
           final fileName = file.name;
-          if (fileName.toLowerCase().endsWith('.json') && 
-              !fileName.toLowerCase().contains('manifest')) {
+          final fileNameLower = fileName.toLowerCase();
+          // 跳过 macOS 系统文件和 manifest.json
+          if (fileNameLower.contains('__macosx') || 
+              fileNameLower.contains('/._') ||
+              fileNameLower.contains('manifest')) {
+            continue;
+          }
+          if (fileNameLower.endsWith('.json') && file.isFile) {
             jsonContent = utf8.decode(file.content as List<int>);
             print('找到 JSON 文件: ${file.name}，大小: ${jsonContent.length} 字符');
             break;
