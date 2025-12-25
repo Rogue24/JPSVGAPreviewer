@@ -39,7 +39,7 @@ class _SVGAPreviewState extends State<SVGAPreview> {
   Future<void> _loadSVGA() async {
     try {
       widget.controller.reset();
-      final parser = SVGAParser(); // 如果使用的是const parser，这里会是同一个实例
+      final parser = const SVGAParser(); // 如果使用的是const parser，这里会是同一个实例
       print("SVGAPreview parser.hashCode: ${parser.hashCode}");
       final videoItem = await parser.decodeFromBuffer(
         await widget.file.readAsBytes(),

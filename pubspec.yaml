@@ -31,6 +31,8 @@ dependencies:
   flutter:
     sdk: flutter
   svgaplayer_flutter: ^2.2.0  # SVGA 动画解析
+  lottie: ^3.0.0  # Lottie 动画解析和渲染
+  archive: ^3.4.10  # 用于解压 .lottie 和 .json.gz 文件
   file_picker: ^6.1.1  # 文件选择
   dio: ^5.4.3+1  # 网络请求与下载
   desktop_drop: ^0.4.4  # 文件拖放支持

@@ -15,15 +15,33 @@ class SVGAInfoBar extends StatelessWidget {
           if (viewModel.currentFileName == null) return const Row();
           return Row(
             children: [
-              const Icon(Icons.movie_outlined),
+              Icon(viewModel.animationType == AnimationType.lottie ? Icons.animation : Icons.movie_outlined),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      viewModel.currentFileName!,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold,),
+                    Row(
+                      children: [
+                        Text(
+                          viewModel.currentFileName!,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold,),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: viewModel.animationType == AnimationType.lottie 
+                                ? Colors.blue.shade900 
+                                : Colors.purple.shade900,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            viewModel.animationType == AnimationType.lottie ? 'Lottie' : 'SVGA',
+                            style: const TextStyle(fontSize: 10, color: Colors.white),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -55,7 +73,8 @@ class SVGAInfoBar extends StatelessWidget {
   }
 
   String _fileSizeText(SVGAViewModel viewModel) {
-    return 'SVGA文件: ${viewModel.svgaFileSizeText}  •  临时文件: ${viewModel.totalFileSizeMB.toStringAsFixed(1)}MB  •  内存: ${viewModel.memoryUsage.toStringAsFixed(1)}MB';
+    final fileType = viewModel.animationType == AnimationType.lottie ? 'Lottie文件' : 'SVGA文件';
+    return '$fileType: ${viewModel.svgaFileSizeText}  •  临时文件: ${viewModel.totalFileSizeMB.toStringAsFixed(1)}MB  •  内存: ${viewModel.memoryUsage.toStringAsFixed(1)}MB';
   }
 
   String _totalFramesText(SVGAViewModel viewModel) {

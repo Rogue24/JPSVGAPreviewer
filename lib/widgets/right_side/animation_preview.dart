@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:svga_previewer/view_models/svga_view_model.dart';
 import 'package:svga_previewer/widgets/right_side/svga_preview.dart';
+import 'package:svga_previewer/widgets/right_side/lottie_preview.dart';
 import 'package:svgaplayer_flutter/player.dart';
 
 class AnimationPreview extends StatelessWidget {
@@ -15,16 +16,21 @@ class AnimationPreview extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       alignment: Alignment.center,
       child: Consumer<SVGAViewModel>(
-        builder: (context, viewModel, child) {
-          if (viewModel.svgaFile == null) {
-            return _buildPlaceholder(viewModel);
-          }
+      builder: (context, viewModel, child) {
+        if (viewModel.animationType == null) {
+          return _buildPlaceholder(viewModel);
+        }
           return LayoutBuilder(
             builder: (context, constraints) {
               double width = constraints.maxWidth;
               double height = constraints.maxHeight;
               Size preferredSize;
-              if (viewModel.frameWidth > viewModel.frameHeight) {
+              
+              // 如果宽度或高度为 0，使用默认尺寸
+              if (viewModel.frameWidth <= 0 || viewModel.frameHeight <= 0) {
+                preferredSize = Size(width - 2, height - 2);
+                print('使用默认尺寸: $preferredSize (因为 frameWidth=${viewModel.frameWidth}, frameHeight=${viewModel.frameHeight})');
+              } else if (viewModel.frameWidth > viewModel.frameHeight) {
                 double ratio = viewModel.frameHeight / viewModel.frameWidth;
                 height = width * ratio;
                 preferredSize = Size((width - 2), (width - 2) * ratio); // Border宽度是属于内边距，所以减2
@@ -39,7 +45,7 @@ class AnimationPreview extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    SVGAPreview(controller: controller, file: viewModel.svgaFile!, preferredSize: preferredSize,),
+                    _buildAnimationPreview(viewModel, preferredSize),
                     _buildBorder(viewModel),
                   ],
                 ),
@@ -66,6 +72,23 @@ class AnimationPreview extends StatelessWidget {
         child: Text('无预览'),
       ),
     );
+  }
+
+  Widget _buildAnimationPreview(SVGAViewModel viewModel, Size preferredSize) {
+    if (viewModel.animationType == AnimationType.svga && viewModel.svgaFile != null) {
+      return SVGAPreview(
+        controller: controller,
+        file: viewModel.svgaFile!,
+        preferredSize: preferredSize,
+      );
+    } else if (viewModel.animationType == AnimationType.lottie && viewModel.lottieFile != null) {
+      return LottiePreview(
+        file: viewModel.lottieFile!,
+        preferredSize: preferredSize,
+      );
+    } else {
+      return const SizedBox();
+    }
   }
 
   Widget _buildBorder(SVGAViewModel viewModel) {

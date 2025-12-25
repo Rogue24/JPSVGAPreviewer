@@ -51,15 +51,19 @@ void main(List<String> args) async {
   channel.setMethodCallHandler((call) async {
     if (call.method == 'openFile') {
       final String filePath = call.arguments as String;
-      if (filePath.toLowerCase().endsWith('.svga')) {
-        await viewModel.processSVGAFile(filePath);
+      final ext = filePath.toLowerCase();
+      if (ext.endsWith('.svga') || ext.endsWith('.json') || ext.endsWith('.lottie') || ext.endsWith('.json.gz') || ext.endsWith('.zip')) {
+        await viewModel.processAnimationFile(filePath);
       }
     }
   });
 
   // 如果有命令行参数（双击文件打开），处理第一个文件
-  if (args.isNotEmpty && args.first.toLowerCase().endsWith('.svga')) {
-    await viewModel.processSVGAFile(args.first);
+  if (args.isNotEmpty) {
+    final ext = args.first.toLowerCase();
+    if (ext.endsWith('.svga') || ext.endsWith('.json') || ext.endsWith('.lottie') || ext.endsWith('.json.gz') || ext.endsWith('.zip')) {
+      await viewModel.processAnimationFile(args.first);
+    }
   }
 
   // 设置窗口事件处理
@@ -99,13 +103,14 @@ class MyHomePage extends StatelessWidget {
       body: DropTarget(
         onDragDone: (details) async {
           final file = details.files.first;
-          if (path.extension(file.path).toLowerCase() == '.svga') {
+          final ext = path.extension(file.path).toLowerCase();
+          if (ext == '.svga' || ext == '.json' || ext == '.lottie' || ext == '.zip' || file.path.toLowerCase().endsWith('.json.gz')) {
             // 先清空当前数据
             await Provider.of<SVGAViewModel>(context, listen: false).clearState();
             
             // 处理新文件
             await Provider.of<SVGAViewModel>(context, listen: false)
-                .processSVGAFile(file.path);
+                .processAnimationFile(file.path);
           }
         },
         onDragEntered: (details) {
@@ -140,7 +145,7 @@ class MyHomePage extends StatelessWidget {
             onPressed: () async {
               final result = await FilePicker.platform.pickFiles(
                 type: FileType.custom,
-                allowedExtensions: ['svga'],
+                allowedExtensions: ['svga', 'json', 'lottie', 'zip'],
               );
               if (result != null) {
                 // 先清空当前数据
@@ -148,10 +153,10 @@ class MyHomePage extends StatelessWidget {
                 
                 // 处理新文件
                 await Provider.of<SVGAViewModel>(context, listen: false)
-                    .processSVGAFile(result.files.single.path!);
+                    .processAnimationFile(result.files.single.path!);
               }
             },
-            tooltip: '打开SVGA文件',
+            tooltip: '打开动画文件',
             child: const Icon(Icons.folder_open),
           ),
         ],

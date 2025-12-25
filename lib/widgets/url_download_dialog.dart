@@ -90,7 +90,7 @@ class _UrlDownloadDialogState extends State<UrlDownloadDialog> {
                   const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
-                      '从 URL 下载 SVGA 文件',
+                      '从 URL 下载动画文件',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -110,14 +110,14 @@ class _UrlDownloadDialogState extends State<UrlDownloadDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      '输入 SVGA 文件 URL:',
+                      '输入动画文件 URL:',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _controller,
                       decoration: InputDecoration(
-                        hintText: 'https://example.com/file.svga',
+                        hintText: 'https://example.com/file.svga 或 file.json',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
