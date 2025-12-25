@@ -612,7 +612,8 @@ class SVGAViewModel extends ChangeNotifier {
         Map<String, dynamic> jsonData = json.decode(jsonString);
         
         // 检查并修复 assets 中的图片路径
-        if (jsonData.containsKey('assets')) {
+        // 只有在确实提取到了 images 文件夹时才修复路径
+        if (jsonData.containsKey('assets') && _lottieImagesDir != null) {
           final assets = jsonData['assets'] as List<dynamic>?;
           if (assets != null) {
             print('检查 assets 中的图片路径，共 ${assets.length} 个资源...');
@@ -645,9 +646,11 @@ class SVGAViewModel extends ChangeNotifier {
               jsonString = json.encode(jsonData);
               print('已修复 JSON 中的图片路径');
             } else {
-              print('未找到图片资源');
+              print('未找到图片资源引用');
             }
           }
+        } else if (jsonData.containsKey('assets')) {
+          print('JSON 包含 assets，但未提取到 images 文件夹，保持原始路径');
         }
         
         // 创建临时 JSON 文件
