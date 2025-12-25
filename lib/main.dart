@@ -8,7 +8,8 @@ import 'package:svga_previewer/widgets/home_screen.dart';
 import 'package:window_manager/window_manager.dart';
 import 'single_instance.dart';
 import 'package:flutter/services.dart';
-import 'view_models/svga_view_model.dart';  // 添加这行导入
+import 'view_models/svga_view_model.dart';
+import 'package:svga_previewer/widgets/url_download_dialog.dart';
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -115,23 +116,45 @@ class MyHomePage extends StatelessWidget {
         },
         child: const HomeScreen(),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await FilePicker.platform.pickFiles(
-            type: FileType.custom,
-            allowedExtensions: ['svga'],
-          );
-          if (result != null) {
-            // 先清空当前数据
-            await Provider.of<SVGAViewModel>(context, listen: false).clearState();
-            
-            // 处理新文件
-            await Provider.of<SVGAViewModel>(context, listen: false)
-                .processSVGAFile(result.files.single.path!);
-          }
-        },
-        tooltip: '打开SVGA文件',
-        child: const Icon(Icons.folder_open),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // URL 下载按钮
+          FloatingActionButton(
+            heroTag: 'url_download',
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => UrlDownloadDialog(
+                  viewModel: Provider.of<SVGAViewModel>(context, listen: false),
+                ),
+              );
+            },
+            tooltip: '从 URL 下载',
+            child: const Icon(Icons.download),
+          ),
+          const SizedBox(height: 16),
+          // 文件选择按钮
+          FloatingActionButton(
+            heroTag: 'file_picker',
+            onPressed: () async {
+              final result = await FilePicker.platform.pickFiles(
+                type: FileType.custom,
+                allowedExtensions: ['svga'],
+              );
+              if (result != null) {
+                // 先清空当前数据
+                await Provider.of<SVGAViewModel>(context, listen: false).clearState();
+                
+                // 处理新文件
+                await Provider.of<SVGAViewModel>(context, listen: false)
+                    .processSVGAFile(result.files.single.path!);
+              }
+            },
+            tooltip: '打开SVGA文件',
+            child: const Icon(Icons.folder_open),
+          ),
+        ],
       ),
     );
   }

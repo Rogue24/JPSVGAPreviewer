@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   svgaplayer_flutter: ^2.2.0  # SVGA 动画解析
   file_picker: ^6.1.1  # 文件选择
+  dio: ^5.4.3+1  # 网络请求与下载
   desktop_drop: ^0.4.4  # 文件拖放支持
   path: ^1.8.3  # 路径处理
   path_provider: ^2.1.2  # 文件系统访问
