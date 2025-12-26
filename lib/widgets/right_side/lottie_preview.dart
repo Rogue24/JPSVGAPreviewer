@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:svga_previewer/models/animation_type.dart';
 import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:io';
@@ -18,12 +19,25 @@ class _LottiePreviewState extends State<LottiePreview> with SingleTickerProvider
   late AnimationController _controller;
   Duration? _originalDuration;
   double _currentAppliedSpeed = 1.0;
+  bool _listenerAdded = false;
   
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(vsync: this);
     _loadLottie();
+  }
+
+  /// 更新播放状态到 ViewModel
+  void _updatePlayState() {
+    if (!mounted) return;
+    final viewModel = Provider.of<AnimationViewModel>(context, listen: false);
+    final totalFrames = viewModel.totalFrames;
+    viewModel.updateLottiePlayState(
+      _controller.isAnimating,
+      _controller.value,
+      totalFrames > 0 ? totalFrames : 1,
+    );
   }
 
   @override
@@ -104,8 +118,35 @@ class _LottiePreviewState extends State<LottiePreview> with SingleTickerProvider
   
   @override
   Widget build(BuildContext context) {
+    // 添加监听器来更新播放状态（只添加一次）
+    if (!_listenerAdded) {
+      _controller.addListener(_updatePlayState);
+      _listenerAdded = true;
+    }
+    
     return Consumer<AnimationViewModel>(
       builder: (context, viewModel, child) {
+        // 注册控制回调（只在首次构建时注册）
+        if (viewModel.animationType == AnimationType.lottie) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            viewModel.registerLottieCallbacks(
+              onPlay: () {
+                if (_controller.isCompleted) {
+                  _controller.reset();
+                }
+                _controller.repeat();
+              },
+              onPause: () {
+                _controller.stop();
+              },
+              onSeek: (value) {
+                _controller.stop();
+                _controller.value = value.clamp(0.0, 1.0);
+              },
+            );
+          });
+        }
+
         // 监听播放速度变化并自动应用
         if (_originalDuration != null && viewModel.playbackSpeed != _currentAppliedSpeed) {
           WidgetsBinding.instance.addPostFrameCallback((_) {

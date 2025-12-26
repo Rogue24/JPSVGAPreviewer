@@ -49,6 +49,14 @@ class AnimationViewModel extends ChangeNotifier {
   double _downloadProgress = 0.0;
   String? _downloadError;
 
+  // Lottie 播放控制（通过回调函数实现）
+  VoidCallback? _lottiePlayCallback;
+  VoidCallback? _lottiePauseCallback;
+  Function(double)? _lottieSeekCallback;
+  bool _lottieIsPlaying = false;
+  double _lottieCurrentValue = 0.0;
+  int _lottieTotalFrames = 0;
+
   // Getters
   List<File> get frames => _frames;
   List<FrameInfo> get frameInfos => _frameInfos;
@@ -83,6 +91,11 @@ class AnimationViewModel extends ChangeNotifier {
   double get downloadProgress => _downloadProgress;
   String? get downloadError => _downloadError;
 
+  // Lottie 播放状态
+  bool get lottieIsPlaying => _lottieIsPlaying;
+  double get lottieCurrentValue => _lottieCurrentValue;
+  int get lottieTotalFrames => _lottieTotalFrames;
+
   /// 从缓存加载用户偏好设置
   Future<void> loadUserPreferences() async {
     final prefs = await UserPreferencesManager.loadPreferences();
@@ -106,9 +119,17 @@ class AnimationViewModel extends ChangeNotifier {
     _animationFile = null;
     _animationType = null;
     _currentFileName = null;
-    _lottieImagesDir = null;
-    _metadata = null;
-    _playbackSpeed = 1.0;
+      _lottieImagesDir = null;
+      _metadata = null;
+      _playbackSpeed = 1.0;
+
+      // 清理 Lottie 控制回调
+      _lottiePlayCallback = null;
+      _lottiePauseCallback = null;
+      _lottieSeekCallback = null;
+      _lottieIsPlaying = false;
+      _lottieCurrentValue = 0.0;
+      _lottieTotalFrames = 0;
 
     // 取消下载
     _downloader.cancel();
@@ -244,6 +265,39 @@ class AnimationViewModel extends ChangeNotifier {
     _playbackSpeed = speed;
     print("播放速度已设置: ${speed}x");
     notifyListeners();
+  }
+
+  /// 注册 Lottie 播放控制回调
+  void registerLottieCallbacks({
+    VoidCallback? onPlay,
+    VoidCallback? onPause,
+    Function(double)? onSeek,
+  }) {
+    _lottiePlayCallback = onPlay;
+    _lottiePauseCallback = onPause;
+    _lottieSeekCallback = onSeek;
+  }
+
+  /// 更新 Lottie 播放状态
+  void updateLottiePlayState(bool isPlaying, double currentValue, int totalFrames) {
+    _lottieIsPlaying = isPlaying;
+    _lottieCurrentValue = currentValue;
+    _lottieTotalFrames = totalFrames;
+    notifyListeners();
+  }
+
+  /// 控制 Lottie 播放/暂停
+  void toggleLottiePlay() {
+    if (_lottieIsPlaying) {
+      _lottiePauseCallback?.call();
+    } else {
+      _lottiePlayCallback?.call();
+    }
+  }
+
+  /// 控制 Lottie 跳转到指定位置
+  void seekLottie(double value) {
+    _lottieSeekCallback?.call(value);
   }
 
   /// 从 URL 下载文件

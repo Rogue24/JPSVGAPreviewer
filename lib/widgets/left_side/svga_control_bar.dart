@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:svga_previewer/models/animation_type.dart';
 import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:svgaplayer_flutter/svgaplayer_flutter.dart';
 
@@ -36,17 +38,9 @@ class SVGAControlBar extends StatelessWidget {
               padding: const EdgeInsets.only(left: 8, right: 8),
               child: Row(
                 children: [
-                  AnimatedBuilder(
-                    animation: controller,
-                    builder: (context, child) {
-                      return Text(
-                        '当前帧: ${controller.currentFrame + 1} / ${controller.frames}', 
-                        style: const TextStyle(fontSize: 12)
-                      );
-                    }
-                  ),
+                  _buildCurrentFrameText(viewModel),
                   const Spacer(),
-                  _PlayButton(controller: controller,),
+                  _buildPlayButton(viewModel),
                   const SizedBox(width: 4),
                 ],
               ),
@@ -56,26 +50,7 @@ class SVGAControlBar extends StatelessWidget {
 
             Padding(
               padding: const EdgeInsets.only(left: 3, right: 3),
-              child: AnimatedBuilder(
-                animation: controller,
-                builder: (context, child) {
-                  return Slider(
-                    activeColor: Colors.deepPurpleAccent.shade200,
-                    min: 0,
-                    max: controller.frames.toDouble(),
-                    value: controller.currentFrame.toDouble(),
-                    // label: '${controller.currentFrame}',
-                    onChanged: (v) {
-                      if (controller.isAnimating == true) {
-                        controller.stop();
-                      }
-                      // 📌 当划到1.0时会看不到最后一帧的画面，松手才看到，而第三方demo却没事，不知道为啥，只好弄成无限接近1，暂时先这么处理吧😫
-                      controller.value = min(v / controller.frames, 0.999999999); 
-                      // print('v: $v, currentFrame: ${controller.currentFrame}, frames: ${controller.frames}, lowerBound: ${controller.lowerBound}, upperBound: ${controller.upperBound}, value: ${controller.value}');
-                    },
-                  );
-                }
-              ),
+              child: _buildProgressSlider(viewModel),
             ),
 
             Padding(
@@ -114,6 +89,81 @@ class SVGAControlBar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// 构建当前帧文本
+  Widget _buildCurrentFrameText(AnimationViewModel viewModel) {
+    if (viewModel.animationType == AnimationType.svga) {
+      return AnimatedBuilder(
+        animation: controller,
+        builder: (context, child) {
+          return Text(
+            '当前帧: ${controller.currentFrame + 1} / ${controller.frames}',
+            style: const TextStyle(fontSize: 12),
+          );
+        },
+      );
+    } else if (viewModel.animationType == AnimationType.lottie) {
+      return Consumer<AnimationViewModel>(
+        builder: (context, vm, child) {
+          final currentFrame = (vm.lottieCurrentValue * vm.lottieTotalFrames).round() + 1;
+          return Text(
+            '当前帧: $currentFrame / ${vm.lottieTotalFrames}',
+            style: const TextStyle(fontSize: 12),
+          );
+        },
+      );
+    }
+    return const SizedBox();
+  }
+
+  /// 构建播放按钮
+  Widget _buildPlayButton(AnimationViewModel viewModel) {
+    if (viewModel.animationType == AnimationType.svga) {
+      return _PlayButton(controller: controller);
+    } else if (viewModel.animationType == AnimationType.lottie) {
+      return _LottiePlayButton(viewModel: viewModel);
+    }
+    return const SizedBox();
+  }
+
+  /// 构建进度条
+  Widget _buildProgressSlider(AnimationViewModel viewModel) {
+    if (viewModel.animationType == AnimationType.svga) {
+      return AnimatedBuilder(
+        animation: controller,
+        builder: (context, child) {
+          return Slider(
+            activeColor: Colors.deepPurpleAccent.shade200,
+            min: 0,
+            max: controller.frames.toDouble(),
+            value: controller.currentFrame.toDouble(),
+            onChanged: (v) {
+              if (controller.isAnimating == true) {
+                controller.stop();
+              }
+              controller.value = min(v / controller.frames, 0.999999999);
+            },
+          );
+        },
+      );
+    } else if (viewModel.animationType == AnimationType.lottie) {
+      return Consumer<AnimationViewModel>(
+        builder: (context, vm, child) {
+          return Slider(
+            activeColor: Colors.deepPurpleAccent.shade200,
+            min: 0,
+            max: vm.lottieTotalFrames.toDouble(),
+            value: (vm.lottieCurrentValue * vm.lottieTotalFrames).clamp(0.0, vm.lottieTotalFrames.toDouble()),
+            onChanged: (v) {
+              final normalizedValue = (v / vm.lottieTotalFrames).clamp(0.0, 1.0);
+              vm.seekLottie(normalizedValue);
+            },
+          );
+        },
+      );
+    }
+    return const SizedBox();
   }
 }
 
@@ -174,6 +224,38 @@ class __PlayButtonState extends State<_PlayButton> {
           );
         }
       ),
+    );
+  }
+}
+
+/// Lottie 播放按钮
+class _LottiePlayButton extends StatelessWidget {
+  final AnimationViewModel viewModel;
+
+  const _LottiePlayButton({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AnimationViewModel>(
+      builder: (context, vm, child) {
+        return Container(
+          width: 28,
+          height: 20,
+          decoration: BoxDecoration(
+            color: Colors.deepPurpleAccent,
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: IconButton(
+            onPressed: () {
+              vm.toggleLottiePlay();
+            },
+            icon: Icon(vm.lottieIsPlaying ? Icons.pause : Icons.play_arrow),
+            iconSize: 17,
+            padding: EdgeInsets.zero,
+            color: Colors.white,
+          ),
+        );
+      },
     );
   }
 }
