@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:svga_previewer/widgets/left_side/left_side_screen.dart';
 import 'package:svga_previewer/widgets/right_side/right_side_screen.dart';
 import 'package:svgaplayer_flutter/player.dart';
@@ -63,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildMaskToast() {
-    return Consumer<SVGAViewModel>(
+    return Consumer<AnimationViewModel>(
       builder: (context, viewModel, child) {
         if (!viewModel.isDragging) return const SizedBox();
         return Container(

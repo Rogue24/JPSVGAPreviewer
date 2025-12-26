@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 
 class UrlDownloadDialog extends StatefulWidget {
-  final SVGAViewModel viewModel;
+  final AnimationViewModel viewModel;
 
   const UrlDownloadDialog({super.key, required this.viewModel});
 
@@ -117,7 +117,7 @@ class _UrlDownloadDialogState extends State<UrlDownloadDialog> {
                     TextField(
                       controller: _controller,
                       decoration: InputDecoration(
-                        hintText: 'https://example.com/file.svga 或 file.json',
+                        hintText: 'https://example.com/file.svga ',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),

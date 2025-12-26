@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/models/animation_type.dart';
+import 'package:svga_previewer/models/display_mode.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:svga_previewer/widgets/left_side/background_color_bar.dart';
 import 'package:svga_previewer/widgets/left_side/display_mode_bar.dart';
 import 'package:svga_previewer/widgets/left_side/frames_list.dart';
@@ -16,7 +18,7 @@ class LeftSideScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SVGAViewModel>(
+    return Consumer<AnimationViewModel>(
       builder: (context, viewModel, child) {
         return Column(
           children: _buildWidgets(viewModel, controller),
@@ -25,18 +27,18 @@ class LeftSideScreen extends StatelessWidget {
     );
   }
   
-  List<Widget> _buildWidgets(SVGAViewModel viewModel, SVGAAnimationController controller) {
+  List<Widget> _buildWidgets(AnimationViewModel viewModel, SVGAAnimationController controller) {
     List<Widget> list = [
-      // SVGA图片列表
+      // 动画图片列表
       Expanded(
         child: ClipRect(
           child: viewModel.frames.isEmpty
-            ? _buildPlaceholder(viewModel.svgaFile == null)
+            ? _buildPlaceholder(viewModel)
             : FramesList(viewModel: viewModel,),
         ),
       ),
     ]; 
-    if (viewModel.svgaFile != null && viewModel.mode != DisplayMode.showBottom) {
+    if ((viewModel.svgaFile != null || viewModel.lottieFile != null) && viewModel.mode != DisplayMode.showBottom) {
       // 进度控制栏
       list.add(SVGAControlBar(viewModel: viewModel, controller: controller));
     }
@@ -51,14 +53,20 @@ class LeftSideScreen extends StatelessWidget {
     return list;
   }
 
-  Widget _buildPlaceholder(bool isEmptySvga) {
-    if (isEmptySvga) {
+  Widget _buildPlaceholder(AnimationViewModel viewModel) {
+    // 判断是否有加载的动画文件
+    final hasAnimationFile = viewModel.svgaFile != null || viewModel.lottieFile != null;
+    
+    if (!hasAnimationFile) {
       return const Center(
-        child: Text('拖放SVGA文件到这里\n或点击右下角按钮打开文件'),
+        child: Text('拖放SVGA/Lottie/ZIP文件到这里\n或点击右下角按钮打开文件'),
       );
     } else {
-      return const Center(
-        child: Text('该SVGA文件并未包含图片\n🎨🚫', textAlign: TextAlign.center,),
+      // 根据动画类型显示不同的提示
+      final animationType = viewModel.animationType;
+      final fileType = animationType == AnimationType.lottie ? 'Lottie' : 'SVGA';
+      return Center(
+        child: Text('该$fileType文件并未包含图片\n🎨🚫', textAlign: TextAlign.center,),
       );
     }
   }

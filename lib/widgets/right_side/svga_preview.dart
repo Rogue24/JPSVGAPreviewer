@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:svgaplayer_flutter/svgaplayer_flutter.dart';
 import 'dart:io';
 
@@ -55,7 +55,7 @@ class _SVGAPreviewState extends State<SVGAPreview> {
         }
         
         // 应用当前播放速度
-        final viewModel = Provider.of<SVGAViewModel>(context, listen: false);
+        final viewModel = Provider.of<AnimationViewModel>(context, listen: false);
         _applyPlaybackSpeed(viewModel.playbackSpeed);
         
         widget.controller.repeat();
@@ -119,7 +119,7 @@ class _SVGAPreviewState extends State<SVGAPreview> {
   
   @override
   Widget build(BuildContext context) {
-    return Consumer<SVGAViewModel>(
+    return Consumer<AnimationViewModel>(
       builder: (context, viewModel, child) {
         // 监听播放速度变化并自动应用
         if (_originalDuration != null && viewModel.playbackSpeed != _currentAppliedSpeed) {

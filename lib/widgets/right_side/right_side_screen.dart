@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/models/display_mode.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:svga_previewer/widgets/right_side/animation_preview.dart';
 import 'package:svga_previewer/widgets/right_side/frame_preview.dart';
 import 'package:svga_previewer/widgets/right_side/svga_info_bar.dart';
@@ -13,7 +14,7 @@ class RightSideScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SVGAViewModel>(
+    return Consumer<AnimationViewModel>(
       builder: (context, viewModel, child) {
         return Column(
           children: _buildWidgets(viewModel.mode),
@@ -46,7 +47,7 @@ class RightSideScreen extends StatelessWidget {
   //       child: LayoutBuilder(
   //         builder: (context, constraints) {
   //           final fullHeight = constraints.maxHeight;
-  //           return Consumer<SVGAViewModel>(
+  //           return Consumer<AnimationViewModel>(
   //             builder: (context, viewModel, child) {
   //               final mode = viewModel.mode;
   //               return Stack(

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui' as ui show Image;
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 
 class FramePreview extends StatelessWidget {
   const FramePreview({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SVGAViewModel>(
+    return Consumer<AnimationViewModel>(
       builder: (context, viewModel, child) {
         return Stack(
           children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/models/animation_type.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 
 class SVGAInfoBar extends StatelessWidget {
   const SVGAInfoBar({super.key});
@@ -10,7 +11,7 @@ class SVGAInfoBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       color: Colors.black45,
-      child: Consumer<SVGAViewModel>(
+      child: Consumer<AnimationViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.currentFileName == null) return const Row();
           return Row(
@@ -68,16 +69,16 @@ class SVGAInfoBar extends StatelessWidget {
     );
   }
 
-  String _infoText(SVGAViewModel viewModel) {
+  String _infoText(AnimationViewModel viewModel) {
     return '帧率: ${viewModel.fps.toStringAsFixed(1)} FPS  •  时长: ${viewModel.duration.toStringAsFixed(2)}秒  •  分辨率: ${viewModel.frameWidth}x${viewModel.frameHeight}';
   }
 
-  String _fileSizeText(SVGAViewModel viewModel) {
+  String _fileSizeText(AnimationViewModel viewModel) {
     final fileType = viewModel.animationType == AnimationType.lottie ? 'Lottie文件' : 'SVGA文件';
     return '$fileType: ${viewModel.svgaFileSizeText}  •  临时文件: ${viewModel.totalFileSizeMB.toStringAsFixed(1)}MB  •  内存: ${viewModel.memoryUsage.toStringAsFixed(1)}MB';
   }
 
-  String _totalFramesText(SVGAViewModel viewModel) {
+  String _totalFramesText(AnimationViewModel viewModel) {
     return '总帧数: ${viewModel.totalFrames}';
   }
 }

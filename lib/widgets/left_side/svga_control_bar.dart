@@ -1,11 +1,11 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:svgaplayer_flutter/svgaplayer_flutter.dart';
 
 class SVGAControlBar extends StatelessWidget {
-  final SVGAViewModel viewModel;
+  final AnimationViewModel viewModel;
   final SVGAAnimationController controller;
 
   const SVGAControlBar({super.key, required this.viewModel, required this.controller});
@@ -180,7 +180,7 @@ class __PlayButtonState extends State<_PlayButton> {
 
 /// 播放速度选择器
 class _SpeedSelector extends StatelessWidget {
-  final SVGAViewModel viewModel;
+  final AnimationViewModel viewModel;
   final SVGAAnimationController controller;
 
   const _SpeedSelector({required this.viewModel, required this.controller});

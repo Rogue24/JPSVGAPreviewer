@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/models/display_mode.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:svgaplayer_flutter/player.dart';
 
 class DisplayModeBar extends StatelessWidget {
-  final SVGAViewModel viewModel;
+  final AnimationViewModel viewModel;
   final SVGAAnimationController controller;
 
   const DisplayModeBar({super.key, required this.viewModel, required this.controller});

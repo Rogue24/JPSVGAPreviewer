@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:io';
 
@@ -104,7 +104,7 @@ class _LottiePreviewState extends State<LottiePreview> with SingleTickerProvider
   
   @override
   Widget build(BuildContext context) {
-    return Consumer<SVGAViewModel>(
+    return Consumer<AnimationViewModel>(
       builder: (context, viewModel, child) {
         // 监听播放速度变化并自动应用
         if (_originalDuration != null && viewModel.playbackSpeed != _currentAppliedSpeed) {

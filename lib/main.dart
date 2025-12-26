@@ -8,7 +8,7 @@ import 'package:svga_previewer/widgets/home_screen.dart';
 import 'package:window_manager/window_manager.dart';
 import 'single_instance.dart';
 import 'package:flutter/services.dart';
-import 'view_models/svga_view_model.dart';
+import 'view_models/animation_view_model.dart';
 import 'package:svga_previewer/widgets/url_download_dialog.dart';
 
 void main(List<String> args) async {
@@ -41,7 +41,7 @@ void main(List<String> args) async {
   });
 
   // 创建视图模型
-  final viewModel = SVGAViewModel();
+  final viewModel = AnimationViewModel();
 
   // 从缓存加载用户偏好设置（包括排版模式、边框显示、背景颜色）
   await viewModel.loadUserPreferences();
@@ -106,18 +106,18 @@ class MyHomePage extends StatelessWidget {
           final ext = path.extension(file.path).toLowerCase();
           if (ext == '.svga' || ext == '.json' || ext == '.lottie' || ext == '.zip' || file.path.toLowerCase().endsWith('.json.gz')) {
             // 先清空当前数据
-            await Provider.of<SVGAViewModel>(context, listen: false).clearState();
+            await Provider.of<AnimationViewModel>(context, listen: false).clearState();
             
             // 处理新文件
-            await Provider.of<SVGAViewModel>(context, listen: false)
+            await Provider.of<AnimationViewModel>(context, listen: false)
                 .processAnimationFile(file.path);
           }
         },
         onDragEntered: (details) {
-          Provider.of<SVGAViewModel>(context, listen: false).setDragging(true);
+          Provider.of<AnimationViewModel>(context, listen: false).setDragging(true);
         },
         onDragExited: (details) {
-          Provider.of<SVGAViewModel>(context, listen: false).setDragging(false);
+          Provider.of<AnimationViewModel>(context, listen: false).setDragging(false);
         },
         child: const HomeScreen(),
       ),
@@ -131,7 +131,7 @@ class MyHomePage extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (context) => UrlDownloadDialog(
-                  viewModel: Provider.of<SVGAViewModel>(context, listen: false),
+                  viewModel: Provider.of<AnimationViewModel>(context, listen: false),
                 ),
               );
             },
@@ -149,10 +149,10 @@ class MyHomePage extends StatelessWidget {
               );
               if (result != null) {
                 // 先清空当前数据
-                await Provider.of<SVGAViewModel>(context, listen: false).clearState();
+                await Provider.of<AnimationViewModel>(context, listen: false).clearState();
                 
                 // 处理新文件
-                await Provider.of<SVGAViewModel>(context, listen: false)
+                await Provider.of<AnimationViewModel>(context, listen: false)
                     .processAnimationFile(result.files.single.path!);
               }
             },

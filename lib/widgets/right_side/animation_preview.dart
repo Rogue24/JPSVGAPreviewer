@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/models/animation_type.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 import 'package:svga_previewer/widgets/right_side/svga_preview.dart';
 import 'package:svga_previewer/widgets/right_side/lottie_preview.dart';
 import 'package:svgaplayer_flutter/player.dart';
@@ -15,7 +16,7 @@ class AnimationPreview extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(16),
       alignment: Alignment.center,
-      child: Consumer<SVGAViewModel>(
+      child: Consumer<AnimationViewModel>(
       builder: (context, viewModel, child) {
         if (viewModel.animationType == null) {
           return _buildPlaceholder(viewModel);
@@ -57,7 +58,7 @@ class AnimationPreview extends StatelessWidget {
     );
   }
   
-  Widget _buildPlaceholder(SVGAViewModel viewModel) {
+  Widget _buildPlaceholder(AnimationViewModel viewModel) {
     return Container(
       decoration: BoxDecoration(
         color: viewModel.previewBackgroundColor,
@@ -74,7 +75,7 @@ class AnimationPreview extends StatelessWidget {
     );
   }
 
-  Widget _buildAnimationPreview(SVGAViewModel viewModel, Size preferredSize) {
+  Widget _buildAnimationPreview(AnimationViewModel viewModel, Size preferredSize) {
     if (viewModel.animationType == AnimationType.svga && viewModel.svgaFile != null) {
       return SVGAPreview(
         controller: controller,
@@ -91,7 +92,7 @@ class AnimationPreview extends StatelessWidget {
     }
   }
 
-  Widget _buildBorder(SVGAViewModel viewModel) {
+  Widget _buildBorder(AnimationViewModel viewModel) {
     return Container(
       decoration: BoxDecoration(
         border: viewModel.showBorder ? Border.all(

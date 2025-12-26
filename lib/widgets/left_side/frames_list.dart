@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:svga_previewer/view_models/svga_view_model.dart';
+import 'package:svga_previewer/view_models/animation_view_model.dart';
 
 class FramesList extends StatelessWidget {
-  final SVGAViewModel viewModel;
+  final AnimationViewModel viewModel;
 
   const FramesList({super.key, required this.viewModel});
 
